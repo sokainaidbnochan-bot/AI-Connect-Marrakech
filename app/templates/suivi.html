@@ -1,0 +1,55 @@
+{% extends "base.html" %}
+{% set active = "suivi" %}
+{% block title %}Suivi — AI Connect Marrakech{% endblock %}
+{% block content %}
+
+<div class="topline">
+  <div>
+    <h1>Suivi des candidatures</h1>
+    <p>Glisser une carte d'une colonne à l'autre pour mettre à jour son statut.</p>
+  </div>
+</div>
+
+<div class="kanban" id="kanban"></div>
+
+<script>
+const lanes = [
+  {key:"a-contacter", label:"À contacter", items:["Bab Support IT","Jnane Mobile"]},
+  {key:"contacte", label:"Contacté", items:["Kissaria Web","Sirocco Analytics"]},
+  {key:"entretien", label:"Entretien", items:["Palmeraie Software"]},
+  {key:"refuse", label:"Refusé", items:["Ouarzati Data Studio"]},
+  {key:"accepte", label:"Accepté", items:["Atlas Neural Labs"]},
+];
+const kanbanEl = document.getElementById("kanban");
+
+function renderKanban() {
+  kanbanEl.innerHTML = lanes.map(l => `
+    <div class="lane" data-key="${l.key}">
+      <h4>${l.label} <span>${l.items.length}</span></h4>
+      ${l.items.map(name => `<div class="card" draggable="true" data-name="${name}"><b>${name}</b><span class="meta">Stage — mis à jour récemment</span></div>`).join("")}
+    </div>`).join("");
+  attachDnD();
+}
+
+function attachDnD() {
+  document.querySelectorAll(".card").forEach(card => {
+    card.addEventListener("dragstart", ev => ev.dataTransfer.setData("text/plain", card.dataset.name));
+  });
+  document.querySelectorAll(".lane").forEach(lane => {
+    lane.addEventListener("dragover", ev => { ev.preventDefault(); lane.classList.add("dragover"); });
+    lane.addEventListener("dragleave", () => lane.classList.remove("dragover"));
+    lane.addEventListener("drop", ev => {
+      ev.preventDefault();
+      lane.classList.remove("dragover");
+      const name = ev.dataTransfer.getData("text/plain");
+      lanes.forEach(l => l.items = l.items.filter(n => n !== name));
+      const target = lanes.find(l => l.key === lane.dataset.key);
+      target.items.push(name);
+      renderKanban();
+    });
+  });
+}
+renderKanban();
+</script>
+
+{% endblock %}

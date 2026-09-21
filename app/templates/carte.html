@@ -1,0 +1,56 @@
+{% extends "base.html" %}
+{% set active = "carte" %}
+{% block title %}Carte — AI Connect Marrakech{% endblock %}
+{% block content %}
+
+<div class="topline">
+  <div>
+    <h1>Carte</h1>
+    <p>Répartition géographique réelle des {{ entreprises|length }} entreprises identifiées.</p>
+  </div>
+</div>
+
+<link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
+<script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+
+<div class="panel" style="padding:0; overflow:hidden;">
+  <div id="carte-reelle" style="height:600px; width:100%; border-radius:10px;"></div>
+</div>
+
+<script>
+const entreprises = {{ entreprises|tojson }};
+
+const map = L.map('carte-reelle').setView([31.63, -8.01], 13);
+
+L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+  attribution: '&copy; OpenStreetMap contributors',
+  maxZoom: 19,
+}).addTo(map);
+
+const couleurs = {
+  ia: "#2F4EC4", web: "#3E6B52", data: "#B85C34",
+  mobile: "#2F4EC4", it: "#B85C34"
+};
+
+entreprises.forEach(e => {
+  if (!e.lat || !e.lng) return;
+  const couleur = couleurs[e.cat] || "#2F4EC4";
+  const marker = L.circleMarker([e.lat, e.lng], {
+    radius: 7,
+    fillColor: couleur,
+    fillOpacity: 0.85,
+    color: "#fff",
+    weight: 2,
+  }).addTo(map);
+
+  marker.bindPopup(`
+    <b>${e.nom}</b><br>
+    ${e.cat_label}<br>
+    ${e.quartier}<br>
+    ★ ${e.note} · ${e.avis} avis<br>
+    ${e.adresse}
+  `);
+});
+</script>
+
+{% endblock %}

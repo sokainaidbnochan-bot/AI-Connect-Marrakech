@@ -1,0 +1,36 @@
+COMMENT INTÉGRER CES FICHIERS DANS TON PROJET
+==============================================
+
+1. Copie ces fichiers dans ton dossier app/ (ils vont AJOUTER des fichiers,
+   pas écraser login.html / landing.html / login.css / landing.css / login.js
+   qui existent déjà) :
+
+   app.py                          -> remplace ton app.py actuel en entier
+   data_access.py                  -> nouveau, à côté de app.py
+   templates/base.html             -> nouveau
+   templates/dashboard.html        -> nouveau
+   templates/entreprises.html      -> nouveau
+   templates/carte.html            -> nouveau
+   templates/suivi.html            -> nouveau
+   static/css/style.css            -> nouveau (ne touche pas à login.css/landing.css)
+
+2. IMPORTANT : ce nouveau app.py contient DÉJÀ les routes /login et /landing,
+   donc si ton app.py actuel a des choses en plus (par exemple des routes que
+   tu as ajoutées toi-même), dis-le moi et je les rajoute dans la prochaine
+   version.
+
+3. Lance le serveur comme d'habitude :
+   cd app
+   python app.py
+
+4. Teste ces adresses dans le navigateur :
+   127.0.0.1:5000/dashboard
+   127.0.0.1:5000/entreprises
+   127.0.0.1:5000/carte
+   127.0.0.1:5000/suivi
+
+5. Les données sont pour l'instant dans data_access.py (8 entreprises
+   d'exemple). Une fois que api_google_places.py + cleaning.py auront
+   produit data/processed/entreprises_final.csv, on remplacera
+   get_entreprises() pour qu'elle lise ce fichier avec pandas au lieu
+   des données codées en dur.

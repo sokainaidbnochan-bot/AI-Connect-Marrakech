@@ -1,0 +1,37 @@
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:ital,wght@0,500;1,500&family=Space+Grotesk:wght@400;500;600;700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="{{ url_for('static', filename='css/login.css') }}">
+
+<div class="login-stage">
+  <div class="lamp-side">
+    <svg id="lamp" viewBox="0 0 200 240" width="180">
+      <defs>
+        <linearGradient id="beamGrad" x1="0" y1="0" x2="0" y2="1">
+          <stop offset="0%" stop-color="var(--accent)" stop-opacity="0.35"/>
+          <stop offset="100%" stop-color="var(--accent)" stop-opacity="0"/>
+        </linearGradient>
+      </defs>
+      <path id="beam" d="M70,115 L130,115 L175,235 L25,235 Z" fill="url(#beamGrad)" opacity="0"/>
+      <ellipse id="glow" cx="100" cy="105" rx="85" ry="70" fill="var(--accent)" opacity="0"/>
+      <path d="M40,108 A60,72 0 0 1 160,108 Z" fill="#EDEAE0"/>
+      <ellipse cx="100" cy="108" rx="60" ry="7" fill="#DAD3C0"/>
+      <rect x="97" y="108" width="6" height="78" fill="#B9B2A0"/>
+      <rect x="68" y="186" width="64" height="10" rx="3" fill="#B9B2A0"/>
+      <line x1="100" y1="112" x2="100" y2="148" stroke="#8A8474" stroke-width="1.5"/>
+      <circle id="pull" cx="100" cy="152" r="6" fill="var(--clay)" style="cursor:pointer"/>
+    </svg>
+    <p class="hint">Clique sur la ficelle</p>
+  </div>
+
+  <div class="card-side">
+    <form class="login-card" id="loginCard" method="POST" action="{{ url_for('login') }}">
+      <h2>AI Connect Marrakech</h2>
+      <label>Nom d'utilisateur</label>
+      <input type="text" name="username" placeholder="ton nom">
+      <label>Mot de passe</label>
+      <input type="password" name="password" placeholder="••••••••">
+      <button class="btn" type="submit">Entrer</button>
+    </form>
+  </div>
+</div>
+
+<script src="{{ url_for('static', filename='js/login.js') }}"></script>

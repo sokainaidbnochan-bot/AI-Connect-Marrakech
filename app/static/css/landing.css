@@ -1,0 +1,58 @@
+:root {
+  --bg: #F6F2E9;
+  --bg-panel: #FFFFFF;
+  --ink: #211E19;
+  --ink-soft: #6B6558;
+  --line: #E4DCC9;
+  --accent: #2F4EC4;
+  --accent-soft: #E4E9FA;
+  --clay: #B85C34;
+  --green: #3E6B52;
+  --shadow: 0 1px 2px rgba(33,30,25,0.06), 0 8px 24px rgba(33,30,25,0.05);
+  font-family: "Space Grotesk", sans-serif;
+}
+* { box-sizing: border-box; }
+body { margin: 0; background: var(--bg); color: var(--ink); }
+h1, em { font-family: "Fraunces", serif; font-style: normal; font-weight: 500; }
+h1 em { color: var(--accent); font-style: italic; }
+p { color: var(--ink-soft); line-height: 1.6; }
+a { text-decoration: none; color: inherit; }
+
+.topnav {
+  display: flex; align-items: center; justify-content: space-between;
+  padding: 16px 40px; border-bottom: 1px solid var(--line);
+}
+.brand { font-family: "Fraunces", serif; font-size: 17px; display: flex; align-items: baseline; gap: 6px; }
+.brand .mark { font-style: italic; color: var(--clay); font-size: 20px; }
+.brand .sub { font-size: 11px; color: var(--ink-soft); font-family: "Space Grotesk"; margin-left: 4px; }
+.nav-links { display: flex; gap: 26px; font-size: 14px; }
+.nav-links a:hover { color: var(--accent); }
+
+.btn { padding: 9px 18px; border-radius: 7px; background: var(--accent); color: #fff; font-size: 14px; }
+.btn.ghost { background: transparent; border: 1px solid var(--line); color: var(--ink); }
+
+.hero {
+  display: flex; align-items: center; justify-content: space-between;
+  padding: 70px 40px; max-width: 1100px; margin: 0 auto; gap: 40px;
+}
+.hero-text { max-width: 520px; }
+.hero-text h1 { font-size: 38px; line-height: 1.15; margin-bottom: 16px; }
+.hero-actions { display: flex; gap: 12px; margin-top: 26px; }
+
+.kpis {
+  display: grid; grid-template-columns: repeat(4, 1fr); gap: 14px;
+  max-width: 1100px; margin: 0 auto 60px; padding: 0 40px;
+}
+.kpi {
+  background: var(--bg-panel); border: 1px solid var(--line); border-radius: 10px;
+  padding: 18px; text-align: center; box-shadow: var(--shadow);
+}
+.kpi .num { font-family: "Fraunces", serif; font-size: 30px; }
+.kpi .lab { font-size: 12px; color: var(--ink-soft); margin-top: 4px; }
+
+footer { text-align: center; padding: 24px; font-size: 12px; color: var(--ink-soft); border-top: 1px solid var(--line); }
+
+@media (max-width: 760px) {
+  .hero { flex-direction: column; text-align: center; }
+  .kpis { grid-template-columns: 1fr 1fr; }
+}
