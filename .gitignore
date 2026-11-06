@@ -2,3 +2,22 @@ venv/
 .env
 __pycache__/
 *.pyc
+# Secrets
+.env
+streamlit_app/.streamlit/secrets.toml
+
+# Python
+__pycache__/
+*.pyc
+*.pyo
+venv/
+.venv/
+
+# VS Code
+.vscode/
+
+# Cache
+data/raw/offres_jooble_cache.json
+
+# Fichier temporaire
+projet_fichiers.txt
