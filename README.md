@@ -115,7 +115,7 @@ AI_Connect_Marrakech/
 ### 1. Cloner le projet
 
 ```bash
-git clone [https://github.com/votre-utilisateur/AI_Connect_Marrakech.git](https://github.com/votre-utilisateur/AI_Connect_Marrakech.git)
+git clone https://github.com/sokainaidbnochan-bot/AI-Connect-Marrakech.git
 cd AI_Connect_Marrakech
 ```
 
@@ -138,7 +138,7 @@ Créez un fichier `.env` à partir de `.env.example` :
 
 ```env
 JOOBLE_API_KEY=your_jooble_api_key
-JOOBLE_BASE_URL=[https://ma.jooble.org/api](https://ma.jooble.org/api)
+JOOBLE_BASE_URL=https://ma.jooble.org/api
 
 MYSQL_HOST=localhost
 MYSQL_USER=root
