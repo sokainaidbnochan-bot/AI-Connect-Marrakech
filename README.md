@@ -213,4 +213,4 @@ La plateforme utilise une approche de recommandation basée sur **TF-IDF** et la
 
 L’application est déployée sur Streamlit Community Cloud :
 
-https://votre-lien-streamlit.streamlit.app
+https://ai-connect-marrakech-b6dcwcnwqqvg4va9nktthd.streamlit.app/Suivi
