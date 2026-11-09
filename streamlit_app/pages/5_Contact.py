@@ -1,5 +1,6 @@
 import pandas as pd
 import streamlit as st
+import urllib.parse
 import smtplib
 from email.mime.text import MIMEText
 from email.mime.multipart import MIMEMultipart
@@ -57,6 +58,18 @@ st.markdown("""
         padding: 22px;
         box-shadow: 0 4px 12px rgba(0, 0, 0, .08);
         margin-bottom: 22px;
+    }
+
+    .whatsapp-button {
+        background-color: #25D366;
+        color: white;
+        padding: 12px 20px;
+        border: none;
+        border-radius: 8px;
+        font-weight: bold;
+        cursor: pointer;
+        text-decoration: none;
+        display: inline-block;
     }
 </style>
 """, unsafe_allow_html=True)
@@ -229,6 +242,23 @@ with st.form("form_candidature", clear_on_submit=True):
 
             break
 
+    entreprise_telephone = None
+
+    for colonne_tel in [
+        "telephone",
+        "tel",
+        "phone",
+        "numero_telephone",
+        "contact_phone",
+    ]:
+        if colonne_tel in df_offres.columns:
+            valeur_tel = entreprise[colonne_tel]
+
+            if pd.notna(valeur_tel) and str(valeur_tel).strip() != "":
+                entreprise_telephone = str(valeur_tel).strip()
+
+            break
+
     if colonne_offre is not None:
         poste_defaut = str(entreprise[colonne_offre])
     else:
@@ -268,7 +298,7 @@ st.markdown("</div>", unsafe_allow_html=True)
 
 
 # =========================================================
-# VALIDATION + SAUVEGARDE + EMAIL
+# VALIDATION + SAUVEGARDE + EMAIL / WHATSAPP
 # =========================================================
 if envoyer:
 
@@ -277,12 +307,6 @@ if envoyer:
 
     elif cv_pdf is None:
         st.error("Veuillez ajouter votre CV au format PDF.")
-
-    elif entreprise_email is None:
-        st.error(
-            "Cette entreprise n'a pas d'email enregistré. "
-            "Impossible d'envoyer la candidature automatiquement."
-        )
 
     else:
         taille_max = 5 * 1024 * 1024
@@ -311,11 +335,12 @@ if envoyer:
             if succes:
                 st.success("Candidature enregistrée avec succès.")
 
-                sujet_email = (
-                    f"Candidature - {poste.strip()} - {entreprise_nom}"
-                )
+                if entreprise_email:
+                    sujet_email = (
+                        f"Candidature - {poste.strip()} - {entreprise_nom}"
+                    )
 
-                message_email = f"""
+                    message_email = f"""
 Bonjour,
 
 Je souhaite vous proposer ma candidature pour le poste suivant :
@@ -331,25 +356,68 @@ Cordialement,
 Email : {user.get('email', '')}
 """
 
-                email_envoye, message_email_resultat = envoyer_candidature_email(
-                    email_entreprise=entreprise_email,
-                    sujet=sujet_email,
-                    message=message_email,
-                    cv_filename=cv_pdf.name,
-                    cv_data=cv_data,
-                )
+                    email_envoye, message_email_resultat = envoyer_candidature_email(
+                        email_entreprise=entreprise_email,
+                        sujet=sujet_email,
+                        message=message_email,
+                        cv_filename=cv_pdf.name,
+                        cv_data=cv_data,
+                    )
 
-                if email_envoye:
-                    st.success(message_email_resultat)
+                    if email_envoye:
+                        st.success(message_email_resultat)
+                        st.info(
+                            f"Votre candidature a été envoyée à : {entreprise_email}"
+                        )
+
+                    else:
+                        st.error(message_email_resultat)
+                        st.warning(
+                            "La candidature a été enregistrée, "
+                            "mais l'email n'a pas pu être envoyé."
+                        )
+
+                elif entreprise_telephone:
+                    telephone_propre = "".join(
+                        chiffre for chiffre in entreprise_telephone if chiffre.isdigit()
+                    )
+
+                    if not telephone_propre.startswith("212"):
+                        telephone_propre = "212" + telephone_propre.lstrip("0")
+
+                    message_whatsapp = (
+                        f"Bonjour {entreprise_nom},\n\n"
+                        f"Je souhaite postuler au poste : {poste.strip()}.\n\n"
+                        f"{message.strip()}\n\n"
+                        f"Cordialement,\n"
+                        f"{user['full_name']}"
+                    )
+
+                    lien_whatsapp = (
+                        "https://wa.me/"
+                        + telephone_propre
+                        + "?text="
+                        + urllib.parse.quote(message_whatsapp)
+                    )
+
+                    st.markdown(
+                        f"""
+                        <a href="{lien_whatsapp}" target="_blank">
+                            <button class="whatsapp-button">
+                                Envoyer ma candidature via WhatsApp
+                            </button>
+                        </a>
+                        """,
+                        unsafe_allow_html=True,
+                    )
+
                     st.info(
-                        f"Votre candidature a été envoyée à : {entreprise_email}"
+                        "Cliquez sur le bouton WhatsApp pour envoyer votre candidature."
                     )
 
                 else:
-                    st.error(message_email_resultat)
                     st.warning(
-                        "La candidature a été enregistrée, "
-                        "mais l'email n'a pas pu être envoyé."
+                        "Cette entreprise n'a ni email ni numéro WhatsApp enregistré."
                     )
 
             else:
