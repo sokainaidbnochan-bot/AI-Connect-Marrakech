@@ -1,5 +1,9 @@
 import pandas as pd
 import streamlit as st
+import smtplib
+from email.mime.text import MIMEText
+from email.mime.multipart import MIMEMultipart
+from email.mime.application import MIMEApplication
 
 from data_access import charger_entreprises
 from candidature_db import (
@@ -59,6 +63,47 @@ st.markdown("""
 
 
 # =========================================================
+# FONCTION ENVOI EMAIL
+# =========================================================
+def envoyer_candidature_email(
+    email_entreprise,
+    sujet,
+    message,
+    cv_filename,
+    cv_data,
+):
+    try:
+        smtp_email = st.secrets["smtp"]["email"]
+        smtp_password = st.secrets["smtp"]["password"]
+
+        msg = MIMEMultipart()
+        msg["From"] = smtp_email
+        msg["To"] = email_entreprise
+        msg["Subject"] = sujet
+
+        msg.attach(MIMEText(message, "plain", "utf-8"))
+
+        cv_attachment = MIMEApplication(cv_data, _subtype="pdf")
+        cv_attachment.add_header(
+            "Content-Disposition",
+            "attachment",
+            filename=cv_filename
+        )
+
+        msg.attach(cv_attachment)
+
+        with smtplib.SMTP("smtp.gmail.com", 587) as server:
+            server.starttls()
+            server.login(smtp_email, smtp_password)
+            server.send_message(msg)
+
+        return True, "Email envoyé avec succès à l'entreprise."
+
+    except Exception as erreur:
+        return False, f"Erreur lors de l'envoi de l'email : {erreur}"
+
+
+# =========================================================
 # DONNÉES ENTREPRISES
 # =========================================================
 try:
@@ -72,7 +117,6 @@ except Exception as erreur:
 # =========================================================
 # PRÉPARATION DES ENTREPRISES
 # =========================================================
-# Adapter les noms selon les colonnes réelles de ton CSV.
 nom_colonne = None
 
 for colonne in ["nom", "name", "entreprise", "nom_entreprise"]:
@@ -89,7 +133,6 @@ if nom_colonne is None:
     st.stop()
 
 
-# Créer une colonne id stable si ton CSV n'a pas id.
 if "id" not in df.columns:
     df["id"] = range(1, len(df) + 1)
 
@@ -97,11 +140,11 @@ if "id" not in df.columns:
 # =========================================================
 # PAGE
 # =========================================================
-st.title(" Contact et candidatures")
+st.title("Contact et candidatures")
 
 st.write(
     "Sélectionnez une entreprise ayant une offre disponible, "
-    "ajoutez votre CV au format PDF et enregistrez votre candidature."
+    "ajoutez votre CV au format PDF et envoyez votre candidature."
 )
 
 st.caption(
@@ -114,7 +157,6 @@ st.caption(
 # =========================================================
 df_offres = df.copy()
 
-# Si le fichier contient une colonne offre / job / poste, filtrer les entreprises.
 colonne_offre = None
 
 for colonne in ["offre", "offres", "poste", "job_title", "has_offer"]:
@@ -137,7 +179,6 @@ if df_offres.empty:
     st.stop()
 
 
-# Nom affiché dans la liste
 df_offres["label_entreprise"] = df_offres.apply(
     lambda ligne: (
         f"{ligne[nom_colonne]}"
@@ -148,6 +189,7 @@ df_offres["label_entreprise"] = df_offres.apply(
     ),
     axis=1
 )
+
 
 entreprises_dict = dict(
     zip(
@@ -162,6 +204,7 @@ entreprises_dict = dict(
 # =========================================================
 st.markdown('<div class="contact-box">', unsafe_allow_html=True)
 
+
 with st.form("form_candidature", clear_on_submit=True):
 
     choix_entreprise = st.selectbox(
@@ -173,22 +216,19 @@ with st.form("form_candidature", clear_on_submit=True):
     entreprise = df_offres.loc[index_choisi]
 
     entreprise_nom = str(entreprise[nom_colonne])
-
     entreprise_id = int(entreprise["id"])
 
-    # Récupération e-mail éventuel
     entreprise_email = None
 
     for colonne_email in ["email", "email_contact", "contact_email"]:
         if colonne_email in df_offres.columns:
             valeur_email = entreprise[colonne_email]
 
-            if pd.notna(valeur_email):
-                entreprise_email = str(valeur_email)
+            if pd.notna(valeur_email) and str(valeur_email).strip() != "":
+                entreprise_email = str(valeur_email).strip()
 
             break
 
-    # Récupération poste éventuel
     if colonne_offre is not None:
         poste_defaut = str(entreprise[colonne_offre])
     else:
@@ -218,16 +258,17 @@ with st.form("form_candidature", clear_on_submit=True):
     )
 
     envoyer = st.form_submit_button(
-        " Enregistrer ma candidature",
+        "Envoyer ma candidature",
         type="primary",
         use_container_width=True
     )
+
 
 st.markdown("</div>", unsafe_allow_html=True)
 
 
 # =========================================================
-# VALIDATION + SAUVEGARDE
+# VALIDATION + SAUVEGARDE + EMAIL
 # =========================================================
 if envoyer:
 
@@ -237,8 +278,13 @@ if envoyer:
     elif cv_pdf is None:
         st.error("Veuillez ajouter votre CV au format PDF.")
 
+    elif entreprise_email is None:
+        st.error(
+            "Cette entreprise n'a pas d'email enregistré. "
+            "Impossible d'envoyer la candidature automatiquement."
+        )
+
     else:
-        # Limite choisie : 5 Mo
         taille_max = 5 * 1024 * 1024
 
         if cv_pdf.size > taille_max:
@@ -263,13 +309,48 @@ if envoyer:
             )
 
             if succes:
-                st.success(message_resultat)
+                st.success("Candidature enregistrée avec succès.")
 
-                st.info(
-                    "Votre candidature est actuellement enregistrée comme "
-                    "« Brouillon ». Elle n'a pas encore été envoyée "
-                    "automatiquement à l'entreprise."
+                sujet_email = (
+                    f"Candidature - {poste.strip()} - {entreprise_nom}"
                 )
+
+                message_email = f"""
+Bonjour,
+
+Je souhaite vous proposer ma candidature pour le poste suivant :
+
+Poste : {poste.strip()}
+
+Message :
+
+{message.strip()}
+
+Cordialement,
+{user['full_name']}
+Email : {user.get('email', '')}
+"""
+
+                email_envoye, message_email_resultat = envoyer_candidature_email(
+                    email_entreprise=entreprise_email,
+                    sujet=sujet_email,
+                    message=message_email,
+                    cv_filename=cv_pdf.name,
+                    cv_data=cv_data,
+                )
+
+                if email_envoye:
+                    st.success(message_email_resultat)
+                    st.info(
+                        f"Votre candidature a été envoyée à : {entreprise_email}"
+                    )
+
+                else:
+                    st.error(message_email_resultat)
+                    st.warning(
+                        "La candidature a été enregistrée, "
+                        "mais l'email n'a pas pu être envoyé."
+                    )
 
             else:
                 st.error(message_resultat)
@@ -280,7 +361,7 @@ if envoyer:
 # =========================================================
 st.markdown("---")
 
-st.subheader(" Mes candidatures enregistrées")
+st.subheader("Mes candidatures enregistrées")
 
 candidatures = obtenir_candidatures_utilisateur(user["id"])
 
