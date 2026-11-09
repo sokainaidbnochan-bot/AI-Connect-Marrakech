@@ -1,6 +1,4 @@
 import streamlit as st
-import sys
-import os
 import pandas as pd
 
 from candidature_db import obtenir_candidatures_utilisateur
@@ -44,7 +42,7 @@ except Exception as erreur:
 
 
 # =========================================================
-# PRÉPARATION DU DATAFRAME
+# VÉRIFICATION
 # =========================================================
 if not candidatures:
     st.info(
@@ -61,9 +59,9 @@ df = pd.DataFrame(candidatures)
 # =========================================================
 colonnes_obligatoires = [
     "entreprise_nom",
+    "poste",
     "statut",
-    "date_candidature",
-    "remarque",
+    "created_at",
 ]
 
 for colonne in colonnes_obligatoires:
@@ -72,16 +70,15 @@ for colonne in colonnes_obligatoires:
 
 
 df["entreprise_nom"] = df["entreprise_nom"].astype(str).str.strip()
+df["poste"] = df["poste"].astype(str).str.strip()
 df["statut"] = df["statut"].astype(str).str.strip()
-df["date_candidature"] = df["date_candidature"].astype(str).str.strip()
-df["remarque"] = df["remarque"].astype(str).str.strip()
-
+df["created_at"] = df["created_at"].astype(str).str.strip()
 
 df = df[df["entreprise_nom"] != ""]
 
 df = df.drop_duplicates(
     subset="entreprise_nom",
-    keep="last",
+    keep="first",
 ).reset_index(drop=True)
 
 
@@ -90,8 +87,7 @@ df = df.drop_duplicates(
 # =========================================================
 st.title("Suivi des candidatures")
 st.caption(
-    "Modifiez le statut, la date de candidature ou la remarque, "
-    "puis sauvegardez."
+    "Modifiez le statut de vos candidatures enregistrées."
 )
 
 
@@ -99,27 +95,31 @@ df_modifie = st.data_editor(
     df[
         [
             "entreprise_nom",
+            "poste",
             "statut",
-            "date_candidature",
-            "remarque",
+            "created_at",
         ]
     ],
     column_config={
+        "entreprise_nom": st.column_config.TextColumn(
+            "Entreprise"
+        ),
+        "poste": st.column_config.TextColumn(
+            "Poste"
+        ),
         "statut": st.column_config.SelectboxColumn(
             "Statut",
             options=[
-                "À contacter",
-                "Contacté",
+                "Brouillon",
+                "Envoyée",
+                "En attente",
                 "Entretien",
-                "Refusé",
-                "Accepté",
+                "Acceptée",
+                "Refusée",
             ],
         ),
-        "date_candidature": st.column_config.TextColumn(
+        "created_at": st.column_config.TextColumn(
             "Date de candidature"
-        ),
-        "remarque": st.column_config.TextColumn(
-            "Remarque"
         ),
     },
     use_container_width=True,
@@ -129,7 +129,9 @@ df_modifie = st.data_editor(
 
 
 # =========================================================
-# SAUVEGARDE
+# RÉPARTITION PAR STATUT
 # =========================================================
-if st.button("Sauvegarder le suivi"):
-    st.success("Suivi sauvegardé.")
+st.subheader("Répartition par statut")
+
+if not df_modifie.empty:
+    st.bar_chart(df_modifie["statut"].value_counts())
